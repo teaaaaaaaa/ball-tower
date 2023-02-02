@@ -1,0 +1,54 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy Z80-like CPU), page 1.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.                                                    =  002710 L
+    .__.ABS.                                                    =  000000 G
+    .__.CPU.                                                    =  000000 L
+    .__.H$L.                                                    =  000000 L
+  0 _P0                                                            000001 R
+  0 _P1                                                            0000C1 R
+  0 _P10                                                           000781 R
+  0 _P11                                                           000841 R
+  0 _P12                                                           000901 R
+  0 _P13                                                           0009C1 R
+  0 _P14                                                           000A81 R
+  0 _P15                                                           000B41 R
+  0 _P2                                                            000181 R
+  0 _P3                                                            000241 R
+  0 _P4                                                            000301 R
+  0 _P5                                                            0003C1 R
+  0 _P6                                                            000481 R
+  0 _P7                                                            000541 R
+  0 _P8                                                            000601 R
+  0 _P9                                                            0006C1 R
+  0 _duty_instruments                                              000D71 R
+  0 _itSquareSP1                                                   000C01 R
+  0 _itSquareSP2                                                   000C61 R
+  0 _itSquareSP3                                                   000CC1 R
+  0 _kendamaMusic                                                  000F7F GR
+  0 _noise_instruments                                             000E25 R
+  0 _order1                                                        000D21 R
+  0 _order2                                                        000D35 R
+  0 _order3                                                        000D49 R
+  0 _order4                                                        000D5D R
+  0 _order_cnt                                                     000000 R
+  0 _wave_instruments                                              000DCB R
+  0 _waves                                                         000E7F R
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy Z80-like CPU), page 2.
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE                                      size    F94   flags    0
+   1 _DATA                                      size      0   flags    0
+   2 _INITIALIZED                               size      0   flags    0
+   3 _DABS                                      size      0   flags    8
+   4 _HOME                                      size      0   flags    0
+   5 _GSINIT                                    size      0   flags    0
+   6 _GSFINAL                                   size      0   flags    0
+   7 _INITIALIZER                               size      0   flags    0
+   8 _CABS                                      size      0   flags    8
+

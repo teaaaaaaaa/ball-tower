@@ -1,0 +1,825 @@
+                                      1 ;--------------------------------------------------------
+                                      2 ; File Created by SDCC : free open source ANSI-C Compiler
+                                      3 ; Version 4.1.6 #12539 (MINGW32)
+                                      4 ;--------------------------------------------------------
+                                      5 	.module Loop
+                                      6 	.optsdcc -mgbz80
+                                      7 	
+                                      8 ;--------------------------------------------------------
+                                      9 ; Public variables in this module
+                                     10 ;--------------------------------------------------------
+                                     11 	.globl _main
+                                     12 	.globl _huge
+                                     13 	.globl _VerticalMirror
+                                     14 	.globl _memset
+                                     15 	.globl _cpu_fast
+                                     16 	.globl _set_sprite_palette_entry
+                                     17 	.globl _set_bkg_palette_entry
+                                     18 	.globl _fill_win_rect
+                                     19 	.globl _set_sprite_data
+                                     20 	.globl _set_bkg_submap
+                                     21 	.globl _set_bkg_data
+                                     22 	.globl _wait_vbl_done
+                                     23 	.globl _set_interrupts
+                                     24 	.globl _joypad
+                                     25 	.globl _add_LCD
+                                     26 	.globl _add_VBL
+                                     27 	.globl _interruptTable
+                                     28 	.globl _isPhysicsEnabled
+                                     29 	.globl _isStartHeld
+                                     30 	.globl _isAHeld
+                                     31 	.globl _gameOverFlag
+                                     32 	.globl _startFlag
+                                     33 	.globl _birdHitBonus
+                                     34 	.globl _c0
+                                     35 	.globl _ballSpeedY
+                                     36 	.globl _ballSpriteY
+                                     37 	.globl _ballSpriteX
+                                     38 	.globl _scrollY
+                                     39 	.globl _joyState
+                                     40 	.globl _scrollOffset2
+                                     41 	.globl _scrollOffset
+                                     42 	.globl _interruptOffset
+                                     43 	.globl _offsetIndex
+                                     44 ;--------------------------------------------------------
+                                     45 ; special function registers
+                                     46 ;--------------------------------------------------------
+                                     47 ;--------------------------------------------------------
+                                     48 ; ram data
+                                     49 ;--------------------------------------------------------
+                                     50 	.area _DATA
+      000000                         51 _interruptOffset::
+      000000                         52 	.ds 1
+      000001                         53 _scrollOffset::
+      000001                         54 	.ds 1
+      000002                         55 _scrollOffset2::
+      000002                         56 	.ds 1
+      000003                         57 _joyState::
+      000003                         58 	.ds 1
+      000004                         59 _scrollY::
+      000004                         60 	.ds 2
+      000006                         61 _ballSpriteX::
+      000006                         62 	.ds 1
+      000007                         63 _ballSpriteY::
+      000007                         64 	.ds 2
+      000009                         65 _ballSpeedY::
+      000009                         66 	.ds 1
+      00000A                         67 _c0::
+      00000A                         68 	.ds 1
+      00000B                         69 _birdHitBonus::
+      00000B                         70 	.ds 1
+      00000C                         71 _startFlag::
+      00000C                         72 	.ds 1
+      00000D                         73 _gameOverFlag::
+      00000D                         74 	.ds 1
+      00000E                         75 _isAHeld::
+      00000E                         76 	.ds 1
+      00000F                         77 _isStartHeld::
+      00000F                         78 	.ds 1
+      000010                         79 _isPhysicsEnabled::
+      000010                         80 	.ds 1
+                                     81 ;--------------------------------------------------------
+                                     82 ; ram data
+                                     83 ;--------------------------------------------------------
+                                     84 	.area _INITIALIZED
+      000000                         85 _interruptTable::
+      000000                         86 	.ds 16
+                                     87 ;--------------------------------------------------------
+                                     88 ; absolute external ram data
+                                     89 ;--------------------------------------------------------
+                                     90 	.area _DABS (ABS)
+                                     91 ;--------------------------------------------------------
+                                     92 ; global & static initialisations
+                                     93 ;--------------------------------------------------------
+                                     94 	.area _HOME
+                                     95 	.area _GSINIT
+                                     96 	.area _GSFINAL
+                                     97 	.area _GSINIT
+                                     98 ;--------------------------------------------------------
+                                     99 ; Home
+                                    100 ;--------------------------------------------------------
+                                    101 	.area _HOME
+                                    102 ;Loop.c:52: void main() NONBANKED
+                                    103 ;	---------------------------------
+                                    104 ; Function main
+                                    105 ; ---------------------------------
+      000000                        106 _main::
+                                    107 ;Loop.c:54: cpu_fast();
+      000000 CDr00r00               108 	call	_cpu_fast
+                                    109 ;Loop.c:55: scrollOffset = 9;
+      000003 21r01r00               110 	ld	hl, #_scrollOffset
+      000006 36 09                  111 	ld	(hl), #0x09
+                                    112 ;Loop.c:56: scrollOffset2 = 21;
+      000008 21r02r00               113 	ld	hl, #_scrollOffset2
+      00000B 36 15                  114 	ld	(hl), #0x15
+                                    115 ;Loop.c:57: ballSpriteX = 80;
+      00000D 21r06r00               116 	ld	hl, #_ballSpriteX
+      000010 36 50                  117 	ld	(hl), #0x50
+                                    118 ;Loop.c:58: set_bkg_palette_entry(0,0,bgGraphicsCGBPal0c0);
+      000012 11 20 6B               119 	ld	de, #0x6b20
+      000015 D5                     120 	push	de
+      000016 AF                     121 	xor	a, a
+      000017 0F                     122 	rrca
+      000018 F5                     123 	push	af
+      000019 CDr00r00               124 	call	_set_bkg_palette_entry
+      00001C E8 04                  125 	add	sp, #4
+                                    126 ;Loop.c:59: set_bkg_palette_entry(0,1,bgGraphicsCGBPal0c1);
+      00001E 11 60 72               127 	ld	de, #0x7260
+      000021 D5                     128 	push	de
+      000022 AF                     129 	xor	a, a
+      000023 3C                     130 	inc	a
+      000024 F5                     131 	push	af
+      000025 CDr00r00               132 	call	_set_bkg_palette_entry
+      000028 E8 04                  133 	add	sp, #4
+                                    134 ;Loop.c:60: set_bkg_palette_entry(0,2,bgGraphicsCGBPal0c2);
+      00002A 11 60 4D               135 	ld	de, #0x4d60
+      00002D D5                     136 	push	de
+      00002E 21 00 02               137 	ld	hl, #0x200
+      000031 E5                     138 	push	hl
+      000032 CDr00r00               139 	call	_set_bkg_palette_entry
+      000035 E8 04                  140 	add	sp, #4
+                                    141 ;Loop.c:61: set_bkg_palette_entry(0,3,bgGraphicsCGBPal0c3);
+      000037 11 00 00               142 	ld	de, #0x0000
+      00003A D5                     143 	push	de
+      00003B 21 00 03               144 	ld	hl, #0x300
+      00003E E5                     145 	push	hl
+      00003F CDr00r00               146 	call	_set_bkg_palette_entry
+      000042 E8 04                  147 	add	sp, #4
+                                    148 ;Loop.c:62: set_bkg_palette_entry(1,0,bgGraphicsCGBPal1c0);
+      000044 11 40 3B               149 	ld	de, #0x3b40
+      000047 D5                     150 	push	de
+      000048 21 01 00               151 	ld	hl, #0x01
+      00004B E5                     152 	push	hl
+      00004C CDr00r00               153 	call	_set_bkg_palette_entry
+      00004F E8 04                  154 	add	sp, #4
+                                    155 ;Loop.c:63: set_bkg_palette_entry(1,1,bgGraphicsCGBPal1c1);
+      000051 11 C0 36               156 	ld	de, #0x36c0
+      000054 D5                     157 	push	de
+      000055 21 01 01               158 	ld	hl, #0x101
+      000058 E5                     159 	push	hl
+      000059 CDr00r00               160 	call	_set_bkg_palette_entry
+      00005C E8 04                  161 	add	sp, #4
+                                    162 ;Loop.c:64: set_bkg_palette_entry(1,2,bgGraphicsCGBPal1c2);
+      00005E 11 01 3E               163 	ld	de, #0x3e01
+      000061 D5                     164 	push	de
+      000062 21 01 02               165 	ld	hl, #0x201
+      000065 E5                     166 	push	hl
+      000066 CDr00r00               167 	call	_set_bkg_palette_entry
+      000069 E8 04                  168 	add	sp, #4
+                                    169 ;Loop.c:65: set_bkg_palette_entry(1,3,bgGraphicsCGBPal1c3);
+      00006B 11 00 00               170 	ld	de, #0x0000
+      00006E D5                     171 	push	de
+      00006F 21 01 03               172 	ld	hl, #0x301
+      000072 E5                     173 	push	hl
+      000073 CDr00r00               174 	call	_set_bkg_palette_entry
+      000076 E8 04                  175 	add	sp, #4
+                                    176 ;Loop.c:66: set_bkg_palette_entry(2,0,bgGraphicsCGBPal2c0);
+      000078 11 D3 53               177 	ld	de, #0x53d3
+      00007B D5                     178 	push	de
+      00007C 21 02 00               179 	ld	hl, #0x02
+      00007F E5                     180 	push	hl
+      000080 CDr00r00               181 	call	_set_bkg_palette_entry
+      000083 E8 04                  182 	add	sp, #4
+                                    183 ;Loop.c:67: set_bkg_palette_entry(2,1,bgGraphicsCGBPal2c1);
+      000085 11 ED 3F               184 	ld	de, #0x3fed
+      000088 D5                     185 	push	de
+      000089 21 02 01               186 	ld	hl, #0x102
+      00008C E5                     187 	push	hl
+      00008D CDr00r00               188 	call	_set_bkg_palette_entry
+      000090 E8 04                  189 	add	sp, #4
+                                    190 ;Loop.c:68: set_bkg_palette_entry(2,2,bgGraphicsCGBPal2c2);
+      000092 11 E3 33               191 	ld	de, #0x33e3
+      000095 D5                     192 	push	de
+      000096 21 02 02               193 	ld	hl, #0x202
+      000099 E5                     194 	push	hl
+      00009A CDr00r00               195 	call	_set_bkg_palette_entry
+      00009D E8 04                  196 	add	sp, #4
+                                    197 ;Loop.c:69: set_bkg_palette_entry(2,3,bgGraphicsCGBPal2c3);
+      00009F 11 00 00               198 	ld	de, #0x0000
+      0000A2 D5                     199 	push	de
+      0000A3 21 02 03               200 	ld	hl, #0x302
+      0000A6 E5                     201 	push	hl
+      0000A7 CDr00r00               202 	call	_set_bkg_palette_entry
+      0000AA E8 04                  203 	add	sp, #4
+                                    204 ;Loop.c:70: set_bkg_palette_entry(3,0,bgGraphicsCGBPal3c0);
+      0000AC 11 60 46               205 	ld	de, #0x4660
+      0000AF D5                     206 	push	de
+      0000B0 21 03 00               207 	ld	hl, #0x03
+      0000B3 E5                     208 	push	hl
+      0000B4 CDr00r00               209 	call	_set_bkg_palette_entry
+      0000B7 E8 04                  210 	add	sp, #4
+                                    211 ;Loop.c:71: set_bkg_palette_entry(3,1,bgGraphicsCGBPal3c1);
+      0000B9 11 61 41               212 	ld	de, #0x4161
+      0000BC D5                     213 	push	de
+      0000BD 21 03 01               214 	ld	hl, #0x103
+      0000C0 E5                     215 	push	hl
+      0000C1 CDr00r00               216 	call	_set_bkg_palette_entry
+      0000C4 E8 04                  217 	add	sp, #4
+                                    218 ;Loop.c:72: set_bkg_palette_entry(3,2,bgGraphicsCGBPal3c2);
+      0000C6 11 E1 34               219 	ld	de, #0x34e1
+      0000C9 D5                     220 	push	de
+      0000CA 21 03 02               221 	ld	hl, #0x203
+      0000CD E5                     222 	push	hl
+      0000CE CDr00r00               223 	call	_set_bkg_palette_entry
+      0000D1 E8 04                  224 	add	sp, #4
+                                    225 ;Loop.c:73: set_bkg_palette_entry(3,3,bgGraphicsCGBPal3c3);
+      0000D3 11 00 00               226 	ld	de, #0x0000
+      0000D6 D5                     227 	push	de
+      0000D7 21 03 03               228 	ld	hl, #0x303
+      0000DA E5                     229 	push	hl
+      0000DB CDr00r00               230 	call	_set_bkg_palette_entry
+      0000DE E8 04                  231 	add	sp, #4
+                                    232 ;Loop.c:74: set_sprite_palette_entry(0,0,spriteGraphicsCGBPal0c0);
+      0000E0 11 00 00               233 	ld	de, #0x0000
+      0000E3 D5                     234 	push	de
+      0000E4 AF                     235 	xor	a, a
+      0000E5 0F                     236 	rrca
+      0000E6 F5                     237 	push	af
+      0000E7 CDr00r00               238 	call	_set_sprite_palette_entry
+      0000EA E8 04                  239 	add	sp, #4
+                                    240 ;Loop.c:75: set_sprite_palette_entry(0,1,spriteGraphicsCGBPal0c1);
+      0000EC 11 3E 4F               241 	ld	de, #0x4f3e
+      0000EF D5                     242 	push	de
+      0000F0 AF                     243 	xor	a, a
+      0000F1 3C                     244 	inc	a
+      0000F2 F5                     245 	push	af
+      0000F3 CDr00r00               246 	call	_set_sprite_palette_entry
+      0000F6 E8 04                  247 	add	sp, #4
+                                    248 ;Loop.c:76: set_sprite_palette_entry(0,2,spriteGraphicsCGBPal0c2);
+      0000F8 11 9C 01               249 	ld	de, #0x019c
+      0000FB D5                     250 	push	de
+      0000FC 21 00 02               251 	ld	hl, #0x200
+      0000FF E5                     252 	push	hl
+      000100 CDr00r00               253 	call	_set_sprite_palette_entry
+      000103 E8 04                  254 	add	sp, #4
+                                    255 ;Loop.c:77: set_sprite_palette_entry(0,3,spriteGraphicsCGBPal0c3);
+      000105 11 F3 00               256 	ld	de, #0x00f3
+      000108 D5                     257 	push	de
+      000109 21 00 03               258 	ld	hl, #0x300
+      00010C E5                     259 	push	hl
+      00010D CDr00r00               260 	call	_set_sprite_palette_entry
+      000110 E8 04                  261 	add	sp, #4
+                                    262 ;Loop.c:78: set_sprite_palette_entry(1,0,spriteGraphicsCGBPal1c0);
+      000112 11 00 00               263 	ld	de, #0x0000
+      000115 D5                     264 	push	de
+      000116 21 01 00               265 	ld	hl, #0x01
+      000119 E5                     266 	push	hl
+      00011A CDr00r00               267 	call	_set_sprite_palette_entry
+      00011D E8 04                  268 	add	sp, #4
+                                    269 ;Loop.c:79: set_sprite_palette_entry(1,1,spriteGraphicsCGBPal1c1);
+      00011F 11 FF 7F               270 	ld	de, #0x7fff
+      000122 D5                     271 	push	de
+      000123 21 01 01               272 	ld	hl, #0x101
+      000126 E5                     273 	push	hl
+      000127 CDr00r00               274 	call	_set_sprite_palette_entry
+      00012A E8 04                  275 	add	sp, #4
+                                    276 ;Loop.c:80: set_sprite_palette_entry(1,2,spriteGraphicsCGBPal1c2);
+      00012C 11 94 52               277 	ld	de, #0x5294
+      00012F D5                     278 	push	de
+      000130 21 01 02               279 	ld	hl, #0x201
+      000133 E5                     280 	push	hl
+      000134 CDr00r00               281 	call	_set_sprite_palette_entry
+      000137 E8 04                  282 	add	sp, #4
+                                    283 ;Loop.c:81: set_sprite_palette_entry(1,3,spriteGraphicsCGBPal1c3);
+      000139 11 A5 14               284 	ld	de, #0x14a5
+      00013C D5                     285 	push	de
+      00013D 21 01 03               286 	ld	hl, #0x301
+      000140 E5                     287 	push	hl
+      000141 CDr00r00               288 	call	_set_sprite_palette_entry
+      000144 E8 04                  289 	add	sp, #4
+                                    290 ;Loop.c:82: set_sprite_palette_entry(2,0,spriteGraphicsCGBPal2c0);
+      000146 11 00 00               291 	ld	de, #0x0000
+      000149 D5                     292 	push	de
+      00014A 21 02 00               293 	ld	hl, #0x02
+      00014D E5                     294 	push	hl
+      00014E CDr00r00               295 	call	_set_sprite_palette_entry
+      000151 E8 04                  296 	add	sp, #4
+                                    297 ;Loop.c:83: set_sprite_palette_entry(2,1,spriteGraphicsCGBPal2c1);
+      000153 11 ED 3F               298 	ld	de, #0x3fed
+      000156 D5                     299 	push	de
+      000157 21 02 01               300 	ld	hl, #0x102
+      00015A E5                     301 	push	hl
+      00015B CDr00r00               302 	call	_set_sprite_palette_entry
+      00015E E8 04                  303 	add	sp, #4
+                                    304 ;Loop.c:84: set_sprite_palette_entry(2,2,spriteGraphicsCGBPal2c2);
+      000160 11 20 2A               305 	ld	de, #0x2a20
+      000163 D5                     306 	push	de
+      000164 21 02 02               307 	ld	hl, #0x202
+      000167 E5                     308 	push	hl
+      000168 CDr00r00               309 	call	_set_sprite_palette_entry
+      00016B E8 04                  310 	add	sp, #4
+                                    311 ;Loop.c:85: set_sprite_palette_entry(2,3,spriteGraphicsCGBPal2c3);
+      00016D 11 E1 18               312 	ld	de, #0x18e1
+      000170 D5                     313 	push	de
+      000171 21 02 03               314 	ld	hl, #0x302
+      000174 E5                     315 	push	hl
+      000175 CDr00r00               316 	call	_set_sprite_palette_entry
+      000178 E8 04                  317 	add	sp, #4
+                                    318 ;Loop.c:86: set_sprite_data(0,28,spriteGraphics);
+      00017A 11r00r00               319 	ld	de, #_spriteGraphics
+      00017D D5                     320 	push	de
+      00017E 21 00 1C               321 	ld	hl, #0x1c00
+      000181 E5                     322 	push	hl
+      000182 CDr00r00               323 	call	_set_sprite_data
+      000185 E8 04                  324 	add	sp, #4
+                                    325 ;Loop.c:87: set_bkg_data(0,256,bgGraphics);
+      000187 11r00r00               326 	ld	de, #_bgGraphics
+      00018A D5                     327 	push	de
+      00018B AF                     328 	xor	a, a
+      00018C 0F                     329 	rrca
+      00018D F5                     330 	push	af
+      00018E CDr00r00               331 	call	_set_bkg_data
+      000191 E8 04                  332 	add	sp, #4
+                                    333 ;Loop.c:88: set_bkg_submap(0,0,20,18,triangleMap,20);
+      000193 3E 14                  334 	ld	a, #0x14
+      000195 F5                     335 	push	af
+      000196 33                     336 	inc	sp
+      000197 11r00r00               337 	ld	de, #_triangleMapPLN0
+      00019A D5                     338 	push	de
+      00019B 21 14 12               339 	ld	hl, #0x1214
+      00019E E5                     340 	push	hl
+      00019F AF                     341 	xor	a, a
+      0001A0 0F                     342 	rrca
+      0001A1 F5                     343 	push	af
+      0001A2 CDr00r00               344 	call	_set_bkg_submap
+      0001A5 E8 07                  345 	add	sp, #7
+                                    346 ;Loop.c:89: VBK_REG = 1;
+      0001A7 3E 01                  347 	ld	a, #0x01
+      0001A9 E0r00                  348 	ldh	(_VBK_REG + 0), a
+                                    349 ;Loop.c:90: set_bkg_submap(0,0,20,18,triangleMapPLN1,20);
+      0001AB 3E 14                  350 	ld	a, #0x14
+      0001AD F5                     351 	push	af
+      0001AE 33                     352 	inc	sp
+      0001AF 11r00r00               353 	ld	de, #_triangleMapPLN1
+      0001B2 D5                     354 	push	de
+      0001B3 21 14 12               355 	ld	hl, #0x1214
+      0001B6 E5                     356 	push	hl
+      0001B7 AF                     357 	xor	a, a
+      0001B8 0F                     358 	rrca
+      0001B9 F5                     359 	push	af
+      0001BA CDr00r00               360 	call	_set_bkg_submap
+      0001BD E8 07                  361 	add	sp, #7
+                                    362 ;Loop.c:91: fill_win_rect(0,0,32,32,7);
+      0001BF 21 20 07               363 	ld	hl, #0x720
+      0001C2 E5                     364 	push	hl
+      0001C3 3E 20                  365 	ld	a, #0x20
+      0001C5 F5                     366 	push	af
+      0001C6 33                     367 	inc	sp
+      0001C7 AF                     368 	xor	a, a
+      0001C8 0F                     369 	rrca
+      0001C9 F5                     370 	push	af
+      0001CA CDr00r00               371 	call	_fill_win_rect
+      0001CD E8 05                  372 	add	sp, #5
+                                    373 ;Loop.c:92: DISPLAY_ON;
+      0001CF F0r00                  374 	ldh	a, (_LCDC_REG + 0)
+      0001D1 F6 80                  375 	or	a, #0x80
+      0001D3 E0r00                  376 	ldh	(_LCDC_REG + 0), a
+                                    377 ;Loop.c:93: SHOW_BKG;
+      0001D5 F0r00                  378 	ldh	a, (_LCDC_REG + 0)
+      0001D7 F6 01                  379 	or	a, #0x01
+      0001D9 E0r00                  380 	ldh	(_LCDC_REG + 0), a
+                                    381 ;Loop.c:94: STAT_REG = 0xC5;
+      0001DB 3E C5                  382 	ld	a, #0xc5
+      0001DD E0r00                  383 	ldh	(_STAT_REG + 0), a
+                                    384 ;Loop.c:95: SHOW_SPRITES;
+      0001DF F0r00                  385 	ldh	a, (_LCDC_REG + 0)
+      0001E1 F6 02                  386 	or	a, #0x02
+      0001E3 E0r00                  387 	ldh	(_LCDC_REG + 0), a
+                                    388 ;Loop.c:96: SPRITES_8x16;
+      0001E5 F0r00                  389 	ldh	a, (_LCDC_REG + 0)
+      0001E7 F6 04                  390 	or	a, #0x04
+      0001E9 E0r00                  391 	ldh	(_LCDC_REG + 0), a
+                                    392 ;Loop.c:97: add_VBL(huge);
+      0001EB 11r45r00               393 	ld	de, #_huge
+      0001EE D5                     394 	push	de
+      0001EF CDr00r00               395 	call	_add_VBL
+      0001F2 E1                     396 	pop	hl
+                                    397 ;Loop.c:99: set_interrupts(LCD_IFLAG|VBL_IFLAG);
+      0001F3 3E 03                  398 	ld	a, #0x03
+      0001F5 F5                     399 	push	af
+      0001F6 33                     400 	inc	sp
+      0001F7 CDr00r00               401 	call	_set_interrupts
+      0001FA 33                     402 	inc	sp
+                                    403 ;C:/gbdk/include/gb/gb.h:671: __asm__("di");
+      0001FB F3                     404 	di
+                                    405 ;Loop.c:102: add_LCD(VerticalMirror);
+      0001FC 11r00r00               406 	ld	de, #_VerticalMirror
+      0001FF D5                     407 	push	de
+      000200 CDr00r00               408 	call	_add_LCD
+      000203 33                     409 	inc	sp
+      000204 33                     410 	inc	sp
+                                    411 ;C:/gbdk/include/gb/gb.h:655: __asm__("ei");
+      000205 FB                     412 	ei
+                                    413 ;Loop.c:105: while(1)
+      000206                        414 00126$:
+                                    415 ;Loop.c:107: SHOW_BKG;
+      000206 F0r00                  416 	ldh	a, (_LCDC_REG + 0)
+      000208 F6 01                  417 	or	a, #0x01
+      00020A E0r00                  418 	ldh	(_LCDC_REG + 0), a
+                                    419 ;Loop.c:108: joyState = joypad();
+      00020C CDr00r00               420 	call	_joypad
+      00020F 21r03r00               421 	ld	hl, #_joyState
+      000212 73                     422 	ld	(hl), e
+                                    423 ;Loop.c:109: if (joyState & J_RIGHT)
+      000213 4E                     424 	ld	c, (hl)
+      000214 CB 41                  425 	bit	0, c
+      000216 28 08                  426 	jr	Z, 00102$
+                                    427 ;Loop.c:111: scrollOffset --;
+      000218 21r01r00               428 	ld	hl, #_scrollOffset
+      00021B 35                     429 	dec	(hl)
+                                    430 ;Loop.c:112: scrollOffset2 --;
+      00021C 21r02r00               431 	ld	hl, #_scrollOffset2
+      00021F 35                     432 	dec	(hl)
+      000220                        433 00102$:
+                                    434 ;Loop.c:114: if (joyState & J_LEFT)
+      000220 CB 49                  435 	bit	1, c
+      000222 28 08                  436 	jr	Z, 00104$
+                                    437 ;Loop.c:116: scrollOffset ++;
+      000224 21r01r00               438 	ld	hl, #_scrollOffset
+      000227 34                     439 	inc	(hl)
+                                    440 ;Loop.c:117: scrollOffset2 ++;
+      000228 21r02r00               441 	ld	hl, #_scrollOffset2
+      00022B 34                     442 	inc	(hl)
+      00022C                        443 00104$:
+                                    444 ;Loop.c:119: if (joyState & J_DOWN)
+      00022C CB 59                  445 	bit	3, c
+      00022E 28 08                  446 	jr	Z, 00106$
+                                    447 ;Loop.c:121: scrollY ++;
+      000230 21r04r00               448 	ld	hl, #_scrollY
+      000233 34                     449 	inc	(hl)
+      000234 20 02                  450 	jr	NZ, 00203$
+      000236 23                     451 	inc	hl
+      000237 34                     452 	inc	(hl)
+      000238                        453 00203$:
+      000238                        454 00106$:
+                                    455 ;Loop.c:123: if (joyState & J_UP)
+      000238 CB 51                  456 	bit	2, c
+      00023A 28 0B                  457 	jr	Z, 00108$
+                                    458 ;Loop.c:125: scrollY --;
+      00023C 21r04r00               459 	ld	hl, #_scrollY
+      00023F 2A                     460 	ld	a, (hl+)
+      000240 5F                     461 	ld	e, a
+      000241 3A                     462 	ld	a, (hl-)
+      000242 57                     463 	ld	d, a
+      000243 1B                     464 	dec	de
+      000244 7B                     465 	ld	a, e
+      000245 22                     466 	ld	(hl+), a
+      000246 72                     467 	ld	(hl), d
+      000247                        468 00108$:
+                                    469 ;Loop.c:127: LYC_REG = 0;
+      000247 AF                     470 	xor	a, a
+      000248 E0r00                  471 	ldh	(_LYC_REG + 0), a
+                                    472 ;Loop.c:128: interruptOffset = 0;
+      00024A 21r00r00               473 	ld	hl, #_interruptOffset
+      00024D 36 00                  474 	ld	(hl), #0x00
+                                    475 ;Loop.c:129: if (ballSpeedY < 80)
+      00024F 21r09r00               476 	ld	hl, #_ballSpeedY
+      000252 7E                     477 	ld	a, (hl)
+      000253 EE 80                  478 	xor	a, #0x80
+      000255 D6 D0                  479 	sub	a, #0xd0
+      000257 30 01                  480 	jr	NC, 00110$
+                                    481 ;Loop.c:131: ballSpeedY ++;
+      000259 34                     482 	inc	(hl)
+      00025A                        483 00110$:
+                                    484 ;Loop.c:133: if ((ballSpriteY >> 4) > scrollY + 144)
+      00025A 21r07r00               485 	ld	hl, #_ballSpriteY
+      00025D 2A                     486 	ld	a, (hl+)
+      00025E 4F                     487 	ld	c, a
+      00025F 46                     488 	ld	b, (hl)
+      000260 CB 38                  489 	srl	b
+      000262 CB 19                  490 	rr	c
+      000264 CB 38                  491 	srl	b
+      000266 CB 19                  492 	rr	c
+      000268 CB 38                  493 	srl	b
+      00026A CB 19                  494 	rr	c
+      00026C CB 38                  495 	srl	b
+      00026E CB 19                  496 	rr	c
+      000270 21r04r00               497 	ld	hl, #_scrollY
+      000273 2A                     498 	ld	a, (hl+)
+      000274 5F                     499 	ld	e, a
+      000275 56                     500 	ld	d, (hl)
+      000276 21 90 00               501 	ld	hl, #0x0090
+      000279 19                     502 	add	hl, de
+      00027A 7D                     503 	ld	a, l
+      00027B 91                     504 	sub	a, c
+      00027C 7C                     505 	ld	a, h
+      00027D 98                     506 	sbc	a, b
+      00027E 30 05                  507 	jr	NC, 00112$
+                                    508 ;Loop.c:135: ballSpeedY = -80;
+      000280 21r09r00               509 	ld	hl, #_ballSpeedY
+      000283 36 B0                  510 	ld	(hl), #0xb0
+      000285                        511 00112$:
+                                    512 ;Loop.c:137: ballSpriteY += ballSpeedY;
+      000285 FAr09r00               513 	ld	a, (#_ballSpeedY)
+      000288 4F                     514 	ld	c, a
+      000289 07                     515 	rlca
+      00028A 9F                     516 	sbc	a, a
+      00028B 47                     517 	ld	b, a
+      00028C 21r07r00               518 	ld	hl, #_ballSpriteY
+      00028F 6E                     519 	ld	l, (hl)
+                                    520 ;	spillPairReg hl
+                                    521 ;	spillPairReg hl
+      000290 FAr08r00               522 	ld	a, (_ballSpriteY + 1)
+      000293 67                     523 	ld	h, a
+                                    524 ;	spillPairReg hl
+                                    525 ;	spillPairReg hl
+      000294 09                     526 	add	hl, bc
+      000295 4D                     527 	ld	c, l
+      000296 7C                     528 	ld	a, h
+      000297 21r07r00               529 	ld	hl, #_ballSpriteY
+      00029A 71                     530 	ld	(hl), c
+      00029B 23                     531 	inc	hl
+                                    532 ;Loop.c:133: if ((ballSpriteY >> 4) > scrollY + 144)
+      00029C 32                     533 	ld	(hl-), a
+      00029D 2A                     534 	ld	a, (hl+)
+      00029E 4F                     535 	ld	c, a
+      00029F 46                     536 	ld	b, (hl)
+      0002A0 CB 38                  537 	srl	b
+      0002A2 CB 19                  538 	rr	c
+      0002A4 CB 38                  539 	srl	b
+      0002A6 CB 19                  540 	rr	c
+      0002A8 CB 38                  541 	srl	b
+      0002AA CB 19                  542 	rr	c
+      0002AC CB 38                  543 	srl	b
+      0002AE CB 19                  544 	rr	c
+                                    545 ;Loop.c:138: scrollY = (ballSpriteY >> 4) - 72;
+      0002B0 79                     546 	ld	a, c
+      0002B1 50                     547 	ld	d, b
+      0002B2 C6 B8                  548 	add	a, #0xb8
+      0002B4 5F                     549 	ld	e, a
+      0002B5 7A                     550 	ld	a, d
+      0002B6 CE FF                  551 	adc	a, #0xff
+      0002B8 21r04r00               552 	ld	hl, #_scrollY
+      0002BB 73                     553 	ld	(hl), e
+      0002BC 23                     554 	inc	hl
+                                    555 ;Loop.c:139: if (scrollY < 0)
+      0002BD 32                     556 	ld	(hl-), a
+      0002BE 6E                     557 	ld	l, (hl)
+                                    558 ;	spillPairReg hl
+                                    559 ;	spillPairReg hl
+      0002BF FAr05r00               560 	ld	a, (_scrollY + 1)
+                                    561 ;	spillPairReg hl
+                                    562 ;	spillPairReg hl
+      0002C2 CB 7F                  563 	bit	7,a
+      0002C4 28 06                  564 	jr	Z, 00114$
+                                    565 ;Loop.c:141: scrollY = 0;
+      0002C6 AF                     566 	xor	a, a
+      0002C7 21r04r00               567 	ld	hl, #_scrollY
+      0002CA 22                     568 	ld	(hl+), a
+      0002CB 77                     569 	ld	(hl), a
+      0002CC                        570 00114$:
+                                    571 ;Loop.c:143: if (scrollY > 160)
+      0002CC 21r04r00               572 	ld	hl, #_scrollY
+      0002CF 6E                     573 	ld	l, (hl)
+                                    574 ;	spillPairReg hl
+                                    575 ;	spillPairReg hl
+      0002D0 FAr05r00               576 	ld	a, (_scrollY + 1)
+      0002D3 67                     577 	ld	h, a
+                                    578 ;	spillPairReg hl
+                                    579 ;	spillPairReg hl
+      0002D4 5C                     580 	ld	e, h
+      0002D5 16 00                  581 	ld	d, #0x00
+      0002D7 3E A0                  582 	ld	a, #0xa0
+      0002D9 BD                     583 	cp	a, l
+      0002DA 3E 00                  584 	ld	a, #0x00
+      0002DC 9C                     585 	sbc	a, h
+      0002DD CB 7B                  586 	bit	7, e
+      0002DF 28 07                  587 	jr	Z, 00205$
+      0002E1 CB 7A                  588 	bit	7, d
+      0002E3 20 08                  589 	jr	NZ, 00206$
+      0002E5 BF                     590 	cp	a, a
+      0002E6 18 05                  591 	jr	00206$
+      0002E8                        592 00205$:
+      0002E8 CB 7A                  593 	bit	7, d
+      0002EA 28 01                  594 	jr	Z, 00206$
+      0002EC 37                     595 	scf
+      0002ED                        596 00206$:
+      0002ED 30 08                  597 	jr	NC, 00116$
+                                    598 ;Loop.c:145: scrollY = 160;
+      0002EF 21r04r00               599 	ld	hl, #_scrollY
+      0002F2 3E A0                  600 	ld	a, #0xa0
+      0002F4 22                     601 	ld	(hl+), a
+      0002F5 AF                     602 	xor	a, a
+      0002F6 77                     603 	ld	(hl), a
+      0002F7                        604 00116$:
+                                    605 ;Loop.c:147: move_sprite(0,ballSpriteX,(ballSpriteY >> 4) - scrollY);
+      0002F7 79                     606 	ld	a, c
+      0002F8 21r04r00               607 	ld	hl, #_scrollY
+      0002FB 4E                     608 	ld	c, (hl)
+      0002FC 91                     609 	sub	a, c
+      0002FD 47                     610 	ld	b, a
+      0002FE 21r06r00               611 	ld	hl, #_ballSpriteX
+      000301 4E                     612 	ld	c, (hl)
+                                    613 ;C:/gbdk/include/gb/gb.h:1520: OAM_item_t * itm = &shadow_OAM[nb];
+      000302 21r00r00               614 	ld	hl, #_shadow_OAM
+                                    615 ;C:/gbdk/include/gb/gb.h:1521: itm->y=y, itm->x=x;
+      000305 78                     616 	ld	a, b
+      000306 22                     617 	ld	(hl+), a
+      000307 71                     618 	ld	(hl), c
+                                    619 ;Loop.c:148: move_sprite(1,ballSpriteX + 8,(ballSpriteY >> 4) - scrollY);
+      000308 21r07r00               620 	ld	hl, #_ballSpriteY
+      00030B 2A                     621 	ld	a, (hl+)
+      00030C 4F                     622 	ld	c, a
+      00030D 46                     623 	ld	b, (hl)
+      00030E CB 38                  624 	srl	b
+      000310 CB 19                  625 	rr	c
+      000312 CB 38                  626 	srl	b
+      000314 CB 19                  627 	rr	c
+      000316 CB 38                  628 	srl	b
+      000318 CB 19                  629 	rr	c
+      00031A CB 38                  630 	srl	b
+      00031C CB 19                  631 	rr	c
+      00031E 79                     632 	ld	a, c
+      00031F 21r04r00               633 	ld	hl, #_scrollY
+      000322 4E                     634 	ld	c, (hl)
+      000323 91                     635 	sub	a, c
+      000324 47                     636 	ld	b, a
+      000325 FAr06r00               637 	ld	a, (#_ballSpriteX)
+      000328 C6 08                  638 	add	a, #0x08
+      00032A 4F                     639 	ld	c, a
+                                    640 ;C:/gbdk/include/gb/gb.h:1520: OAM_item_t * itm = &shadow_OAM[nb];
+      00032B 21r04r00               641 	ld	hl, #(_shadow_OAM + 4)
+                                    642 ;C:/gbdk/include/gb/gb.h:1521: itm->y=y, itm->x=x;
+      00032E 78                     643 	ld	a, b
+      00032F 22                     644 	ld	(hl+), a
+      000330 71                     645 	ld	(hl), c
+                                    646 ;C:/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
+      000331 21r06r00               647 	ld	hl, #(_shadow_OAM + 6)
+      000334 36 02                  648 	ld	(hl), #0x02
+                                    649 ;Loop.c:150: interruptOffset = scrollY - ((scrollY >> 4) << 4);		//wraps around if greater than 16. Useful for scrolling implementations
+      000336 21r04r00               650 	ld	hl, #_scrollY
+      000339 4E                     651 	ld	c, (hl)
+      00033A 2A                     652 	ld	a, (hl+)
+      00033B 47                     653 	ld	b, a
+      00033C 5E                     654 	ld	e, (hl)
+      00033D CB 2B                  655 	sra	e
+      00033F CB 18                  656 	rr	b
+      000341 CB 2B                  657 	sra	e
+      000343 CB 18                  658 	rr	b
+      000345 CB 2B                  659 	sra	e
+      000347 CB 18                  660 	rr	b
+      000349 CB 2B                  661 	sra	e
+      00034B CB 18                  662 	rr	b
+      00034D 78                     663 	ld	a, b
+      00034E CB 37                  664 	swap	a
+      000350 E6 F0                  665 	and	a, #0xf0
+      000352 47                     666 	ld	b, a
+      000353 79                     667 	ld	a, c
+      000354 90                     668 	sub	a, b
+      000355 EAr00r00               669 	ld	(#_interruptOffset),a
+                                    670 ;Loop.c:151: if (scrollOffset < 9)
+      000358 21r01r00               671 	ld	hl, #_scrollOffset
+      00035B 7E                     672 	ld	a, (hl)
+      00035C D6 09                  673 	sub	a, #0x09
+      00035E 30 02                  674 	jr	NC, 00118$
+                                    675 ;Loop.c:153: scrollOffset = 0x32;
+      000360 36 32                  676 	ld	(hl), #0x32
+      000362                        677 00118$:
+                                    678 ;Loop.c:155: if (scrollOffset > 0x32)
+      000362 3E 32                  679 	ld	a, #0x32
+      000364 21r01r00               680 	ld	hl, #_scrollOffset
+      000367 96                     681 	sub	a, (hl)
+      000368 30 02                  682 	jr	NC, 00120$
+                                    683 ;Loop.c:157: scrollOffset = 9;
+      00036A 36 09                  684 	ld	(hl), #0x09
+      00036C                        685 00120$:
+                                    686 ;Loop.c:159: if (scrollOffset2 < 9)
+      00036C 21r02r00               687 	ld	hl, #_scrollOffset2
+      00036F 7E                     688 	ld	a, (hl)
+      000370 D6 09                  689 	sub	a, #0x09
+      000372 30 02                  690 	jr	NC, 00122$
+                                    691 ;Loop.c:161: scrollOffset2 = 0x32;
+      000374 36 32                  692 	ld	(hl), #0x32
+      000376                        693 00122$:
+                                    694 ;Loop.c:163: if (scrollOffset2 > 0x32)
+      000376 3E 32                  695 	ld	a, #0x32
+      000378 21r02r00               696 	ld	hl, #_scrollOffset2
+      00037B 96                     697 	sub	a, (hl)
+      00037C 30 02                  698 	jr	NC, 00124$
+                                    699 ;Loop.c:165: scrollOffset2 = 9;
+      00037E 36 09                  700 	ld	(hl), #0x09
+      000380                        701 00124$:
+                                    702 ;Loop.c:167: memset(interruptTable + 1,scrollOffset,7);		//write to the interrupt table, but avoid the 1st byte
+      000380 21r01r00               703 	ld	hl, #_scrollOffset
+      000383 4E                     704 	ld	c, (hl)
+      000384 06 00                  705 	ld	b, #0x00
+      000386 11 07 00               706 	ld	de, #0x0007
+      000389 D5                     707 	push	de
+      00038A C5                     708 	push	bc
+      00038B 11r01r00               709 	ld	de, #(_interruptTable + 1)
+      00038E D5                     710 	push	de
+      00038F CDr00r00               711 	call	_memset
+      000392 E8 06                  712 	add	sp, #6
+                                    713 ;Loop.c:168: memset(interruptTable + 9,scrollOffset2,7);		//write to the interrupt table, but avoid the 1st byte of the second half of the table
+      000394 21r02r00               714 	ld	hl, #_scrollOffset2
+      000397 4E                     715 	ld	c, (hl)
+      000398 06 00                  716 	ld	b, #0x00
+      00039A 11 07 00               717 	ld	de, #0x0007
+      00039D D5                     718 	push	de
+      00039E C5                     719 	push	bc
+      00039F 11r09r00               720 	ld	de, #(_interruptTable + 9)
+      0003A2 D5                     721 	push	de
+      0003A3 CDr00r00               722 	call	_memset
+      0003A6 E8 06                  723 	add	sp, #6
+                                    724 ;Loop.c:169: wait_vbl_done();
+      0003A8 CDr00r00               725 	call	_wait_vbl_done
+                                    726 ;Loop.c:171: }
+      0003AB C3r06r02               727 	jp	00126$
+                                    728 	.area _HOME
+                                    729 ;--------------------------------------------------------
+                                    730 ; code
+                                    731 ;--------------------------------------------------------
+                                    732 	.area _CODE
+                                    733 ;Loop.c:34: void VerticalMirror()
+                                    734 ;	---------------------------------
+                                    735 ; Function VerticalMirror
+                                    736 ; ---------------------------------
+      000000                        737 _VerticalMirror::
+                                    738 ;Loop.c:36: if (LY_REG == LYC_REG & LY_REG == LYC_REG)		//performant delay to prevent scanline glitches.
+      000000 C5                     739 	push	bc
+      000001 F0r00                  740 	ldh	a, (_LY_REG + 0)
+      000003 4F                     741 	ld	c,a
+      000004 F0r00                  742 	ldh	a, (_LYC_REG + 0)
+      000006 91                     743 	sub	a,c
+      000007 3E 01                  744 	ld	a, #0x01
+      000009 28 01                  745 	jr	Z, 00118$
+      00000B AF                     746 	xor	a, a
+      00000C                        747 00118$:
+      00000C C1                     748 	pop	bc
+      00000D 4F                     749 	ld	c, a
+      00000E C5                     750 	push	bc
+      00000F F0r00                  751 	ldh	a, (_LY_REG + 0)
+      000011 4F                     752 	ld	c,a
+      000012 F0r00                  753 	ldh	a, (_LYC_REG + 0)
+      000014 91                     754 	sub	a,c
+      000015 3E 01                  755 	ld	a, #0x01
+      000017 28 01                  756 	jr	Z, 00120$
+      000019 AF                     757 	xor	a, a
+      00001A                        758 00120$:
+      00001A C1                     759 	pop	bc
+      00001B A1                     760 	and	a,c
+      00001C C8                     761 	ret	Z
+                                    762 ;Loop.c:38: SCY_REG = interruptTable[interruptOffset] - LYC_REG;
+      00001D 01r00r00               763 	ld	bc, #_interruptTable+0
+      000020 79                     764 	ld	a, c
+      000021 21r00r00               765 	ld	hl, #_interruptOffset
+      000024 86                     766 	add	a, (hl)
+      000025 4F                     767 	ld	c, a
+      000026 30 01                  768 	jr	NC, 00121$
+      000028 04                     769 	inc	b
+      000029                        770 00121$:
+      000029 0A                     771 	ld	a, (bc)
+      00002A 4F                     772 	ld	c, a
+      00002B F0r00                  773 	ldh	a, (_LYC_REG + 0)
+      00002D 6F                     774 	ld	l, a
+                                    775 ;	spillPairReg hl
+                                    776 ;	spillPairReg hl
+      00002E 79                     777 	ld	a, c
+      00002F 95                     778 	sub	a, l
+      000030 E0r00                  779 	ldh	(_SCY_REG + 0), a
+                                    780 ;Loop.c:39: interruptOffset ++;
+      000032 21r00r00               781 	ld	hl, #_interruptOffset
+      000035 34                     782 	inc	(hl)
+                                    783 ;Loop.c:40: LYC_REG ++;
+      000036 F0r00                  784 	ldh	a, (_LYC_REG + 0)
+      000038 3C                     785 	inc	a
+      000039 E0r00                  786 	ldh	(_LYC_REG + 0), a
+                                    787 ;Loop.c:41: if (interruptOffset > 15)
+      00003B 3E 0F                  788 	ld	a, #0x0f
+      00003D 96                     789 	sub	a, (hl)
+      00003E D0                     790 	ret	NC
+                                    791 ;Loop.c:43: interruptOffset = 0;
+      00003F 36 00                  792 	ld	(hl), #0x00
+                                    793 ;Loop.c:46: }
+      000041 C9                     794 	ret
+      000042                        795 _offsetIndex:
+      000042 00                     796 	.db #0x00	; 0
+      000043 5A                     797 	.db #0x5a	; 90	'Z'
+      000044 B0                     798 	.db #0xb0	; 176
+                                    799 ;Loop.c:48: void huge()
+                                    800 ;	---------------------------------
+                                    801 ; Function huge
+                                    802 ; ---------------------------------
+      000045                        803 _huge::
+                                    804 ;Loop.c:50: }
+      000045 C9                     805 	ret
+                                    806 	.area _CODE
+                                    807 	.area _INITIALIZER
+      000000                        808 __xinit__interruptTable:
+      000000 00                     809 	.db #0x00	; 0
+      000001 00                     810 	.db #0x00	; 0
+      000002 00                     811 	.db #0x00	; 0
+      000003 00                     812 	.db #0x00	; 0
+      000004 00                     813 	.db #0x00	; 0
+      000005 00                     814 	.db #0x00	; 0
+      000006 00                     815 	.db #0x00	; 0
+      000007 00                     816 	.db #0x00	; 0
+      000008 00                     817 	.db #0x00	; 0
+      000009 00                     818 	.db #0x00	; 0
+      00000A 00                     819 	.db #0x00	; 0
+      00000B 00                     820 	.db #0x00	; 0
+      00000C 00                     821 	.db #0x00	; 0
+      00000D 00                     822 	.db #0x00	; 0
+      00000E 00                     823 	.db #0x00	; 0
+      00000F 00                     824 	.db #0x00	; 0
+                                    825 	.area _CABS (ABS)
